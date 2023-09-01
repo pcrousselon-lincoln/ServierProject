@@ -1,0 +1,18 @@
+FROM python:3.8.12-slim-bullseye
+
+RUN apt-get -y update \
+    && apt-get -y install git \
+    && apt-get -y install gcc \
+    && apt-get -y install default-libmysqlclient-dev \
+    && apt-get -y install libpq-dev
+
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install git+https://github.com/GoogleCloudPlatform/composer-airflow.git@providers-google-2023.3.14+composer 
+    # && python3 -m pip install git+https://github.com/GoogleCloudPlatform/composer-airflow.git@2.4.3
+
+RUN mkdir /home/servierproject
+COPY . /home/servierproject
+
+WORKDIR /home/servierproject
+
+ENTRYPOINT [ "/bin/bash" ]
