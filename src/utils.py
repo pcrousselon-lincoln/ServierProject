@@ -44,6 +44,12 @@ def load_data_file(file_path):
         log.warning("File type not supported yet, supported extensions are : ['csv', 'json']")
 
 
+def load_processed_file(file_path):
+    log.info(f"loading file into a pd dataframe : {file_path}")
+    raw_df = pd.read_json(file_path, orient="table")
+    return raw_df 
+
+
 def write_to_json(df_out, path):
     """
     Write a dataframe into a single json file in the expected format

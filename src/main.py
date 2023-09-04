@@ -4,7 +4,7 @@ import re
 
 import pandas as pd 
 
-from src.utils import load_data_file, write_to_json
+from src.utils import load_data_file, write_to_json, load_processed_file
 
 logging.basicConfig(filename='../log/log.log', encoding='utf-8', level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -59,6 +59,7 @@ def compute_data_frame(df_data, df_drug, column_name):
     """
     log.debug(f"merging {df_drug.name} and {df_data.name}")
     pat = "|".join([re.escape(x.lower()) for x in df_drug.drug])
+    # we extract the drug name found in the title into a new column 
     df_data.insert(0, 'drug', df_data[column_name].str.extract("(" + pat + ')', expand=False))
     
     log.debug("denormalize the dataframe for output formatting")
@@ -71,28 +72,35 @@ def compute_data_frame(df_data, df_drug, column_name):
     return df_fin
 
 
-def main_compute(root_folder, output_path):
+def raw_to_silver(root_folder, silver_folder, name): 
+    df_drugs = load_all_data(root_folder, name)
+    write_to_json(df_drugs, os.path.join(silver_folder, name + ".json"))
+    
+    
+def main_compute(silver_folder, output_path):
     """
     This function encapsulate all the ETL pipeline. 
     It's mostly hardcoded but at some point too much parametrisation will only cost more time.
     It will load all the data, do the computing work and write everything in a single json file. 
-    :param root_folder: path to datalake
+    :param silver_folder: path to datalake
     :param output_path: path to output file
     :return: None
     """
     # load data into pandas dataframes 
-    df_drugs = load_all_data(root_folder,"drugs")  
-    df_pubmed = load_all_data(root_folder, "pubmed")
-    df_trials = load_all_data(root_folder, "clinical_trials")
+    df_drugs = load_processed_file(silver_folder, "drugs")  
+    df_pubmed = load_processed_file(silver_folder, "pubmed")
+    df_trials = load_processed_file(silver_folder, "clinical_trials")
 
     # compute the work and concat into a single dataframe 
     df_out = pd.concat([compute_data_frame(df_pubmed, df_drugs, "title"),
                         compute_data_frame(df_trials, df_drugs, "scientific_title")])
-    # df_out['value'] = df_out['value'].str.encode('raw-unicode-escape', 'ignore').str.decode('raw-unicode-escape')
 
     # write the output into a single json file
     write_to_json(df_out, output_path)
 
 
 if __name__ == "__main__":
-    main_compute("../data/", "../output/test.json")
+    raw_to_silver("../data/", "../silver/", "drugs")
+    raw_to_silver("../data/", "../silver/", "pubmed")
+    raw_to_silver("../data/", "../silver/", "clinical_trials")
+    main_compute("../silver_folder/", "../output/test.json")

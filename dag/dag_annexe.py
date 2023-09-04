@@ -19,23 +19,19 @@ default_args = {
 
 with DAG(
     'DRUG_CITATION',
-    schedule_interval='0 9 * * *',
+    schedule_interval='0 8 * * *',
     default_args=default_args,
     max_active_runs=1,
     catchup=False,
     doc_md=open('../README.md', 'r').read()
 ) as dag:
-    @task(task_id="full_ETL_pipeline")
-    def full_etl_pipeline(ds=None, **kwargs):
+    @task(task_id="post_extraction")
+    def post_extraction(ds=None, **kwargs):
         """
-        All the dag is done in a single task. 
-        The dag construction will depend on the technology used to compute and mostly the need. 
-        i.e. The preprocessed data are usually computed by batch/stream and stored in a partitioned temp output.
-        In this case, I wanted to keep a simple code and avoid multiple write/read of temp dataframes 
-        or passing huge amount of data through the xcom memory.  
+
         """
         log.info("starting process")
-        main_compute("../silver/", "../output/test.json")
+        post_extraction("../output/test.json", "../output/test.json")
         log.info("The process has ended successfully")
 
-    run_this = full_etl_pipeline()
+    run_this = post_extraction()
