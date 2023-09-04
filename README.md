@@ -103,12 +103,16 @@ Ensuite nous avons le dag de traitement. Dans ce dag, nous effectuons les étape
     - harmonisation des tables selon le graphe exprimé en besoin 
     - union des tables et ecriture en sortie dans 1 seul fichier. 
 
+Pour simplifier et éviter de passer des dataframes dans le xcom de airflow j'ai choisi de n'avoir qu'une seule tache. 
+On peut aussi ajouter des sensors qui attendront que les tables silver soient présentent et mises à jour avant de déclancher 
+le traitement. 
 Pour la sortie, je pense que la modélisation doit répondre à des contraintes de facilité d'utilisation pour les
 utilisateurs. Par ailleurs, comme je travaille en pandas et que ce n'est pas la meilleur solution pour gérer des tables
 nestées j'ai choisi de garder une modélisation plate et dénormalisée pour faciliter les traitements de filtre. 
 
 J'utiliserais donc la modélisation suivante : [{drug,date,type,value}]. La colonne type permet de distinguer le type des
 valeurs parmi 'journal', 'title' ou 'scientific_title'.
+
 
 ### Annexe : traitement Ad-hoc
 
